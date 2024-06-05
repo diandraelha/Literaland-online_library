@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:literaland/widget/Book-detail.dart';
+import 'package:literaland/widget/Book-detail.dart'; // Pastikan ini diimport dengan benar
 
 class ImageContainer extends StatelessWidget {
   final String imagePath;
   final String title;
+  final int bookId;
 
   const ImageContainer({
     Key? key,
     required this.imagePath,
     required this.title,
+    required this.bookId,
   }) : super(key: key);
 
   @override
@@ -19,7 +21,7 @@ class ImageContainer extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BookDetailsScreen(),
+            builder: (context) => BookDetailsScreen(bookId: bookId),
           ),
         );
       },
@@ -28,7 +30,7 @@ class ImageContainer extends StatelessWidget {
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(10.0),
           image: DecorationImage(
-            image: AssetImage(imagePath),
+            image: AssetImage(imagePath), // Menggunakan AssetImage untuk gambar lokal
             fit: BoxFit.cover,
           ),
         ),
@@ -48,6 +50,7 @@ class ImageContainer extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ),
@@ -72,7 +75,7 @@ class FullScreenImage extends StatelessWidget {
         title: const Text('Full Screen Image'), // Ganti judul AppBar
       ),
       body: Center(
-        child: Image.asset(
+        child: Image.asset( // Menggunakan AssetImage untuk gambar lokal
           imagePath,
           fit: BoxFit.contain,
         ),
