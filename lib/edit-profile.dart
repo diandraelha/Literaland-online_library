@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class Editprofile extends StatelessWidget {
+class EditProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +53,7 @@ class Editprofile extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => Editprofile()),
+                    MaterialPageRoute(builder: (context) => EditProfile()),
                   );
                 },
                 child: Text('Save'),

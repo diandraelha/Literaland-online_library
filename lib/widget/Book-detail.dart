@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:literaland/Controller/ApiService.dart';
+import 'package:literaland/Controller/NotificationService.dart';
 import 'package:literaland/Model/book.dart';
-import 'package:literaland/widget/image-container.dart';
 
 class BookDetailsScreen extends StatefulWidget {
   final int bookId;
+  final int userId;
 
-  const BookDetailsScreen({Key? key, required this.bookId}) : super(key: key);
+  const BookDetailsScreen({Key? key, required this.bookId, required this.userId}) : super(key: key);
 
   @override
   _BookDetailsScreenState createState() => _BookDetailsScreenState();
@@ -16,8 +16,7 @@ class BookDetailsScreen extends StatefulWidget {
 class _BookDetailsScreenState extends State<BookDetailsScreen> {
   late Future<Book?> _bookFuture;
   final ApiService _apiService = ApiService();
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
@@ -27,77 +26,35 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   }
 
   Future<void> _initializeNotification() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    final InitializationSettings initializationSettings =
-        InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
-    await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-    );
-
-    await _createNotificationChannel();
+    await _notificationService.initNotification();
   }
 
-  Future<void> _createNotificationChannel() async {
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'peminjaman_berhasil', // Channel ID
-      'Peminjaman Berhasil', // Channel name
-      description: 'Notifikasi untuk mengonfirmasi peminjaman buku.',
-      importance: Importance.high,
-    );
-
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
-  }
-
-  Future<void> showNotification() async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'peminjaman_berhasil', // Match the channel ID
-      'Peminjaman Berhasil',
-      channelDescription: 'Notifikasi untuk mengonfirmasi peminjaman buku.',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    const IOSNotificationDetails iOSPlatformChannelSpecifics =
-        IOSNotificationDetails();
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Buku Berhasil Disimpan',
-      'Arsene Lupin berhasil ditambahkan ke rak buku Anda',
-      platformChannelSpecifics,
-    );
-  }
-
-  Future<void> _toggleBorrowStatus(Book book) async {
+  Future<void> _borrowBook(Book book) async {
     try {
-      final newStatus = !book.isBorrowed;
-      final response = await _apiService.toggleBookStatus(book.id, newStatus);
-      
-      // Check if the response contains 'success' message
+      final response = await _apiService.borrowBook(widget.userId, book.id);
+
       if (response['status'] == 'success') {
         setState(() {
-          book.isBorrowed = newStatus;
+          book.quantity -= 1;
+          book.borrowedBooks += 1;
         });
-        await showNotification();
+        await _notificationService.showNotification('Buku Berhasil Dipinjam', '${book.title} berhasil ditambahkan ke rak buku Anda');
+        
+        // Schedule a reminder notification for the book return in 7 days (example)
+        DateTime returnReminderDate = DateTime.now().add(Duration(days: 7));
+        await _notificationService.scheduleNotification(
+          1, 
+          'Pengembalian Buku', 
+          'Jangan lupa untuk mengembalikan buku ${book.title}.', 
+          returnReminderDate,
+        );
       } else {
-        throw Exception('Failed to toggle book status');
+        throw Exception(response['message'] ?? 'Failed to borrow book');
       }
     } catch (e) {
-      print('Error toggling book status: $e');
+      print('Error borrowing book: $e');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +91,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               image: DecorationImage(
-                                image: AssetImage(book.imagePath),
+                                image: AssetImage(book.bookImagePath),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -157,7 +114,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  'Fiction, Mystery, Crime Fiction',
+                                  book.category,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -167,16 +124,16 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: () async {
-                                      await _toggleBorrowStatus(book);
-                                    },
+                                    onPressed: book.quantity > 0
+                                        ? () async {
+                                            await _borrowBook(book);
+                                          }
+                                        : null,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFF7453FC),
+                                      backgroundColor: book.quantity > 0 ? Color(0xFF7453FC) : Colors.grey,
                                     ),
                                     child: Text(
-                                      book.isBorrowed
-                                          ? 'Return Book'
-                                          : 'Borrow Book',
+                                      book.quantity > 0 ? 'Borrow Book' : 'Out of Stock',
                                       style: TextStyle(
                                         color: Colors.white,
                                       ),
@@ -202,12 +159,50 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: 8),
                         Text(
-                          book.isBorrowed ? 'Borrowed' : 'Available',
+                          'Category: ${book.category}',
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Author: ${book.author}',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Description:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          book.description,
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Quantity Available: ${book.quantity}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Borrowed Books: ${book.borrowedBooks}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],

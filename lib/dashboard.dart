@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:literaland/Model/user.dart';
 import 'package:literaland/widget/Grid-view.dart';
 
 class Dashboard extends StatelessWidget {
-  const Dashboard({super.key});
+  final User user;
+
+  const Dashboard({super.key, required this.user});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +37,7 @@ class Dashboard extends StatelessWidget {
                 ),
                 SizedBox(height: 10),
                 Expanded(
-                  child: MyGridView(), // Pastikan ini dibungkus dengan Expanded agar GridView dapat mengisi ruang yang tersedia
+                  child: MyGridView(user: user), // Kirim user ke MyGridView
                 ),
               ],
             ),

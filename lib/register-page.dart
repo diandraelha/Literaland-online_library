@@ -97,11 +97,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         TextFormField(
                           controller: _emailController,
                           decoration: const InputDecoration(
-                            labelText: 'Username',
+                            labelText: 'Email',
                             labelStyle: TextStyle(
                               color: Colors.white
                             ),
-                            hintText: 'Masukkan Username',
+                            hintText: 'Masukkan Email',
                             hintStyle: TextStyle(
                               color: Colors.white54
                             ),

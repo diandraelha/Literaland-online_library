@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:literaland/Model/user.dart';
 import 'package:literaland/Model/book.dart';
+import 'package:literaland/Model/borrowed-book-history.dart';
+import 'package:literaland/Model/borrowed-book.dart';
+import 'package:literaland/Model/user.dart';
 
 class ApiService {
   final String baseUrl = 'http://10.0.2.2/api';
@@ -19,7 +21,19 @@ class ApiService {
       Uri.parse('$baseUrl/login.php'),
       body: {'username': username, 'password': password},
     );
-    return jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'success' && data['user'] != null) {
+        User user = User.fromJson(data['user']);
+        return {'status': 'success', 'user': user};
+      } else {
+        return {'status': 'error', 'message': data['message'] ?? 'User data is missing'};
+      }
+    } else {
+      return {'status': 'error', 'message': 'Failed to login'};
+    }
   }
 
   Future<Map<String, dynamic>> updateProfile(User user, String? newPassword) async {
@@ -39,7 +53,6 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
- 
   Future<List<Book>> fetchBooks() async {
     final response = await http.get(Uri.parse('$baseUrl/get_books.php'));
     if (response.statusCode == 200) {
@@ -59,12 +72,12 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> toggleBookStatus(int id, bool isBorrowed) async {
+  Future<Map<String, dynamic>> toggleBookStatus(int id, int borrowedBooks) async {
     final response = await http.post(
       Uri.parse('$baseUrl/toggle_book_status.php'),
       body: {
         'id': id.toString(),
-        'isBorrowed': isBorrowed ? '1' : '0',
+        'borrowed': borrowedBooks.toString(),
       },
     );
     return jsonDecode(response.body);
@@ -73,11 +86,7 @@ class ApiService {
   Future<Map<String, dynamic>> addBook(Book book) async {
     final response = await http.post(
       Uri.parse('$baseUrl/save_book.php'),
-      body: {
-        'title': book.title,
-        'imagePath': book.imagePath,
-        'isBorrowed': book.isBorrowed ? '1' : '0',
-      },
+      body: book.toJson(),
     );
     return jsonDecode(response.body);
   }
@@ -96,5 +105,104 @@ class ApiService {
       body: book.toJson(),
     );
     return jsonDecode(response.body);
+  }
+
+  Future<Map<String, dynamic>> borrowBook(int userId, int bookId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/borrow_book.php'),
+      body: {
+        'user_id': userId.toString(),
+        'book_id': bookId.toString(),
+      },
+    );
+    return jsonDecode(response.body);
+  }
+
+  Future<Map<String, dynamic>> returnBook(int userId, int bookId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/return_book.php'),
+      body: {
+        'user_id': userId.toString(),
+        'book_id': bookId.toString(),
+      },
+    );
+    return jsonDecode(response.body);
+  }
+
+  Future<List<BorrowedBook>> fetchBorrowedBooks(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/get_borrowed_books.php?user_id=$userId'));
+    if (response.statusCode == 200) {
+      final List<dynamic> bookData = json.decode(response.body);
+      return bookData.map((data) => BorrowedBook.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load borrowed books');
+    }
+  }
+
+  Future<List<BorrowedBookHistory>> fetchBorrowedBooksHistory(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/get_borrowed_books_history.php?user_id=$userId'));
+    if (response.statusCode == 200) {
+      final List<dynamic> bookData = json.decode(response.body);
+      return bookData.map((data) => BorrowedBookHistory.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load borrowed books history');
+    }
+  }
+
+  Future<void> updateBorrowedBookStatus(int userId, int bookId, String returnedDate, String status) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/update_borrowed_book_status.php'),
+      body: {
+        'user_id': userId.toString(),
+        'book_id': bookId.toString(),
+        'returned_date': returnedDate,
+        'status': status,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final result = json.decode(response.body);
+      if (result['message'] != 'Update successful') {
+        throw Exception('Failed to update borrowed book status');
+      }
+    } else {
+      throw Exception('Failed to update borrowed book status');
+    }
+  }
+
+  Future<Book> fetchBookDetails(int bookId) async {
+    final response = await http.get(Uri.parse('$baseUrl/books/$bookId'));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return Book.fromJson(data);
+    } else {
+      throw Exception('Failed to load book details');
+    }
+  }
+
+  Future<void> updateUserProfilePicture(int userId, String profileImageUrl) async {
+    final postData = {'userId': userId.toString(), 'profilePictureUrl': profileImageUrl};
+    print('Sending POST data: $postData'); // Log the POST data
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/update_user_picture_url.php'),
+      body: postData,
+      headers: {"Content-Type": "application/x-www-form-urlencoded"}, // Explicitly set content type
+    );
+
+    final responseBody = response.body;
+    print('Raw response: $responseBody'); // Log the raw response
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(responseBody);
+      if (jsonResponse['success']) {
+        print('Profile picture updated successfully');
+      } else {
+        throw Exception('Failed to update profile picture: ${jsonResponse['error']}');
+      }
+    } else {
+      throw Exception('Failed to update profile picture');
+    }
   }
 }

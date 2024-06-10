@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:literaland/widget/Book-detail.dart'; // Pastikan ini diimport dengan benar
+import 'package:literaland/widget/Book-detail.dart';
 
 class ImageContainer extends StatelessWidget {
   final String imagePath;
   final String title;
   final int bookId;
+  final int userId; // Tambahkan userId
 
   const ImageContainer({
     Key? key,
     required this.imagePath,
     required this.title,
     required this.bookId,
+    required this.userId, // Tambahkan userId
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Gunakan Navigator untuk berpindah ke halaman baru
+        // Use Navigator to move to the new page
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BookDetailsScreen(bookId: bookId),
+            builder: (context) => BookDetailsScreen(
+              bookId: bookId,
+              userId: userId, // Kirim userId
+            ),
           ),
         );
       },
@@ -30,7 +35,7 @@ class ImageContainer extends StatelessWidget {
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(10.0),
           image: DecorationImage(
-            image: AssetImage(imagePath), // Menggunakan AssetImage untuk gambar lokal
+            image: AssetImage(imagePath), // Use AssetImage for local images
             fit: BoxFit.cover,
           ),
         ),
@@ -55,29 +60,6 @@ class ImageContainer extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// Halaman baru untuk menampilkan gambar secara penuh
-class FullScreenImage extends StatelessWidget {
-  final String imagePath;
-
-  const FullScreenImage({Key? key, required this.imagePath}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black, // Sesuaikan warna AppBar
-        title: const Text('Full Screen Image'), // Ganti judul AppBar
-      ),
-      body: Center(
-        child: Image.asset( // Menggunakan AssetImage untuk gambar lokal
-          imagePath,
-          fit: BoxFit.contain,
         ),
       ),
     );

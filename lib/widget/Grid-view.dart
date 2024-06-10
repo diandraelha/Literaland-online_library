@@ -1,27 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:literaland/library-provider.dart';
+import 'package:literaland/Controller/ApiService.dart';
+import 'package:literaland/Model/book.dart';
+import 'package:literaland/Model/user.dart';
 import 'package:literaland/widget/Book-detail.dart';
 import 'package:literaland/widget/image-container.dart';
-import 'package:provider/provider.dart';
 
-class MyGridView extends StatelessWidget {
-  const MyGridView({Key? key}) : super(key: key);
+class MyGridView extends StatefulWidget {
+  final User user; // Tambahkan user untuk mengirimkan userId
+
+  const MyGridView({Key? key, required this.user}) : super(key: key);
+
+  @override
+  _MyGridViewState createState() => _MyGridViewState();
+}
+
+class _MyGridViewState extends State<MyGridView> {
+  late Future<List<Book>> _booksFuture;
+  final ApiService _apiService = ApiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _booksFuture = _apiService.fetchBooks();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<Library>(
-      builder: (context, library, child) {
-        if (library.isLoading) {
+    return FutureBuilder<List<Book>>(
+      future: _booksFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
-        }
-
-        if (library.error != null) {
-          return Center(child: Text(library.error!, style: TextStyle(color: Colors.white),));
-        }
-
-        if (library.books.isEmpty) {
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(child: Text('No books available'));
         }
+
+        final books = snapshot.data!;
 
         return GridView.builder(
           padding: EdgeInsets.all(20),
@@ -30,24 +46,28 @@ class MyGridView extends StatelessWidget {
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
           ),
-          itemCount: library.books.length,
+          itemCount: books.length,
           itemBuilder: (context, index) {
-            final book = library.books[index];
+            final book = books[index];
             return GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BookDetailsScreen(bookId: book.id),
+                    builder: (context) => BookDetailsScreen(
+                      bookId: book.id,
+                      userId: widget.user.id, // Kirim userId
+                    ),
                   ),
                 );
               },
               child: Hero(
                 tag: 'book-${book.id}',
                 child: ImageContainer(
-                  imagePath: book.imagePath,
+                  imagePath: book.bookImagePath,
                   title: book.title,
                   bookId: book.id,
+                  userId: widget.user.id, // Tambahkan userId untuk ImageContainer
                 ),
               ),
             );

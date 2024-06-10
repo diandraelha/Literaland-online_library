@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:literaland/Controller/apiservice.dart';
 import 'package:literaland/home-page.dart';
+import 'package:literaland/Model/user.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -28,13 +29,15 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response['status'] == 'success') {
+        User user = response['user']; // Already a User object
         // Login berhasil, arahkan ke halaman home
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login berhasil!')),
         );
-        Navigator.pushReplacement(
-          context, 
-          MaterialPageRoute(builder: (context) => Homepage()), // Ganti Homepage() dengan halaman home Anda
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => Homepage(user: user), // Meneruskan objek User ke Homepage
+          ),
         );
       } else {
         // Login gagal, tampilkan pesan error
@@ -73,23 +76,22 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: <Widget>[
-                  SizedBox(height: 50), 
-                  Text(
-                    'Literaland',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                  SizedBox(height: 150),
-                  // Email/Phone Number Input
+                    SizedBox(height: 50), 
+                    Text(
+                      'Literaland',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                    SizedBox(height: 150),
                     Column(
                       children: [
                         TextFormField(
                           controller: _usernameController,
                           decoration: const InputDecoration(
-                            labelText: 'Email atau Nomor HP',
+                            labelText: 'Username',
                             labelStyle: TextStyle(
                               color: Colors.white
                             ),
-                            hintText: 'Masukkan Email atau Nomor HP',
+                            hintText: 'Masukkan Username',
                             hintStyle: TextStyle(
                               color: Colors.white54
                             ),
@@ -142,4 +144,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
