@@ -118,15 +118,25 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  Future<Map<String, dynamic>> returnBook(int userId, int bookId) async {
+   Future<Map<String, dynamic>> returnBook(int userId, int bookId) async {
     final response = await http.post(
       Uri.parse('$baseUrl/return_book.php'),
-      body: {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
         'user_id': userId.toString(),
         'book_id': bookId.toString(),
-      },
+      }),
     );
-    return jsonDecode(response.body);
+
+    print('Raw response: ${response.body}'); // Add this line to log the raw response
+    
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to return book');
+    }
   }
 
   Future<List<BorrowedBook>> fetchBorrowedBooks(int userId) async {
@@ -203,6 +213,48 @@ class ApiService {
       }
     } else {
       throw Exception('Failed to update profile picture');
+    }
+  }
+
+  Future<List<BorrowedBook>> fetchAllBorrowRequests() async {
+    final response = await http.get(Uri.parse('$baseUrl/get_all_borrow_request.php'));
+    if (response.statusCode == 200) {
+      final List<dynamic> bookData = json.decode(response.body);
+      return bookData.map((data) => BorrowedBook.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load borrow requests');
+    }
+  }
+
+  // Metode baru untuk mengambil semua buku yang dipinjam
+  Future<List<BorrowedBook>> fetchAllBorrowedBooks() async {
+    final response = await http.get(Uri.parse('$baseUrl/get_all_borrowed_books.php'));
+    if (response.statusCode == 200) {
+      final List<dynamic> bookData = json.decode(response.body);
+      return bookData.map((data) => BorrowedBook.fromJson(data)).toList();
+    } else {
+      throw Exception('Failed to load borrowed books');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateBorrowStatus(int borrowId, String status) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/update_borrow_status.php'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'borrow_id': borrowId.toString(),
+        'status': status,
+      }),
+    );
+
+    print('Raw response: ${response.body}'); // Log the raw response
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to update borrow status');
     }
   }
 }

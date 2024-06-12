@@ -35,6 +35,24 @@ class Dashboard extends StatelessWidget {
                   ),
                   textAlign: TextAlign.right,
                 ),
+                SizedBox(height: 0),
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Search',
+                      labelStyle: TextStyle(
+                        color: Colors.white
+                      ),
+                      hintText: 'Search',
+                        hintStyle: TextStyle(
+                          color: Colors.white54,
+                          fontStyle: FontStyle.italic
+                        ),
+                    ),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
                 SizedBox(height: 10),
                 Expanded(
                   child: MyGridView(user: user), // Kirim user ke MyGridView

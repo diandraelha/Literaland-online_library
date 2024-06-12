@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:literaland/admin-borrow-request.dart';
+import 'package:literaland/admin-dashboard.dart';
+import 'package:literaland/admin-return-book.dart';
 import 'package:literaland/borrowed-book-screen.dart';
 import 'package:literaland/profile-page.dart';
 import 'package:literaland/dashboard.dart';
 import 'package:literaland/Model/user.dart';
 
-class Homepage extends StatefulWidget {
-  final User user;
+class HomepageAdmin extends StatefulWidget {
 
-  const Homepage({Key? key, required this.user}) : super(key: key);
+  const HomepageAdmin({Key? key}) : super(key: key);
 
   @override
-  _HomepageState createState() => _HomepageState();
+  _HomepageAdminState createState() => _HomepageAdminState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _HomepageAdminState extends State<HomepageAdmin> {
   int _selectedIndex = 0;
 
   late final List<Widget> _widgetOptions;
@@ -22,9 +24,9 @@ class _HomepageState extends State<Homepage> {
   void initState() {
     super.initState();
     _widgetOptions = <Widget>[
-      Dashboard(user: widget.user),
-      BorrowedBooksScreen(user: widget.user),
-      ProfilePage(user: widget.user),
+      AdminDashboard(),
+      AdminBorrowRequestsScreen(),
+      AdminReturnBooksScreen()
     ];
   }
 
@@ -71,12 +73,12 @@ class _HomepageState extends State<Homepage> {
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.book),
+                icon: Icon(Icons.assignment),
                 label: 'Borrowed Books',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profile',
+                icon: Icon(Icons.book),
+                label: 'Borrowed Books',
               ),
             ],
             currentIndex: _selectedIndex,

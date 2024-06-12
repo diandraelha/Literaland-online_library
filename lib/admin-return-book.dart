@@ -2,26 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:literaland/Controller/ApiService.dart';
 import 'package:literaland/Model/book.dart';
 import 'package:literaland/Model/borrowed-book.dart';
-import 'package:literaland/Model/user.dart';
 
-class BorrowedBooksScreen extends StatefulWidget {
-  final User user;
-
-  const BorrowedBooksScreen({Key? key, required this.user}) : super(key: key);
-
+class AdminReturnBooksScreen extends StatefulWidget {
   @override
-  _BorrowedBooksScreenState createState() => _BorrowedBooksScreenState();
+  _AdminReturnBooksScreenState createState() => _AdminReturnBooksScreenState();
 }
 
-class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
+class _AdminReturnBooksScreenState extends State<AdminReturnBooksScreen> {
   late Future<List<BorrowedBook>> _borrowedBooksFuture;
   final ApiService _apiService = ApiService();
 
   @override
   void initState() {
     super.initState();
-    // Initialize the future to fetch borrowed books for the user
-    _borrowedBooksFuture = _apiService.fetchBorrowedBooks(widget.user.id);
+    _borrowedBooksFuture = _apiService.fetchAllBorrowedBooks();
+  }
+
+  Future<void> _returnBook(BorrowedBook book) async {
+    try {
+      final response = await _apiService.returnBook(book.userId, book.bookId);
+      print('Raw response: $response'); // Add this line to log the raw response
+
+      if (response['status'] == 'success') {
+        setState(() {
+          _borrowedBooksFuture = _apiService.fetchAllBorrowedBooks();
+        });
+      } else {
+        throw Exception(response['message'] ?? 'Failed to return book');
+      }
+    } catch (e) {
+      print('Error returning book: $e');
+    }
   }
 
   Future<Book?> _fetchBookDetails(int bookId) async {
@@ -37,37 +48,17 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Borrowed Books', 
-          style: TextStyle(
-            color: Colors.white,
-          )
-        ),
-        backgroundColor: Color(0xFF7453FC),
-        centerTitle: true, // Menengahkan teks di AppBar
-        iconTheme: IconThemeData(
-          color: Colors.white, // Mengubah warna panah kembali menjadi putih
-        ),
-        elevation: 0,
+        title: Text('Return Books'),
       ),
-      backgroundColor: Color(0xFF22252A),
       body: FutureBuilder<List<BorrowedBook>>(
         future: _borrowedBooksFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-              ),
-            );
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.red, fontSize: 16)),
-            );
+            return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Text('No borrowed books', style: TextStyle(color: Colors.grey, fontSize: 16)),
-            );
+            return Center(child: Text('No borrowed books found'));
           }
 
           final borrowedBooks = snapshot.data!;
@@ -104,7 +95,6 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
       margin: EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       elevation: 4,
-      color: Color(0xFF282b2f),
       shadowColor: Colors.black38,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -124,61 +114,61 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
                 children: [
                   Text(
                     book.title,
-                    style: TextStyle(
-                      fontSize: 18, 
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
                   Text(
                     'Author: ${book.author}',
-                    style: TextStyle(fontSize: 14, color: Colors.white70),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                   ),
                   SizedBox(height: 10),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.white70),
+                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                       SizedBox(width: 5),
                       Text(
-                        'Borrowed: ${borrowedBook.borrowedDate}',
-                        style: TextStyle(fontSize: 12, color: Colors.white60),
+                        'Borrowed: ${borrowedBook.borrowedDate.toLocal().toString().split(' ')[0]}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                     ],
                   ),
                   SizedBox(height: 5),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.white70),
+                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                       SizedBox(width: 5),
                       Text(
-                        'Due: ${borrowedBook.dueDate}',
-                        style: TextStyle(fontSize: 12, color: Colors.white60),
+                        'Due: ${borrowedBook.dueDate.toLocal().toString().split(' ')[0]}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                     ],
                   ),
                   SizedBox(height: 5),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.white70),
+                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                       SizedBox(width: 5),
                       Text(
                         'Returned: ${borrowedBook.returnedDate?.toLocal().toString().split(' ')[0] ?? 'Not yet returned'}',
-                        style: TextStyle(fontSize: 12, color: Colors.white60),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                     ],
                   ),
-                  SizedBox(height: 5),
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.white70),
-                      SizedBox(width: 5),
-                      Text(
-                        'Status: ${borrowedBook.status}',
-                        style: TextStyle(fontSize: 12, color: Colors.white60),
-                      ),
-                    ],
-                  ),
+                  SizedBox(height: 10),
+                  borrowedBook.returnedDate == null
+                      ? ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () async {
+                            await _returnBook(borrowedBook);
+                          },
+                          child: Text('Return Book'),
+                        )
+                      : Container(),
                 ],
               ),
             ),

@@ -60,8 +60,17 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Book Details'),
+        title: Text(
+          'Book Details',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Color(0xFF282b2f),
+        centerTitle: true, // Menengahkan teks di AppBar
+        iconTheme: IconThemeData(
+          color: Colors.white, // Mengubah warna panah kembali menjadi putih
+        ),
       ),
+      backgroundColor: Color(0xFF282b2f),
       body: FutureBuilder<Book?>(
         future: _bookFuture,
         builder: (context, snapshot) {
@@ -76,7 +85,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           final book = snapshot.data!;
           return SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(30.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -99,7 +108,6 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           SizedBox(width: 10),
                           Container(
                             padding: const EdgeInsets.all(16),
-                            color: Colors.black.withOpacity(0.5),
                             width: 190,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,11 +160,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        SizedBox(height: 20),
                         Text(
                           book.title,
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -165,6 +175,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontStyle: FontStyle.italic,
+                            color: Colors.white70,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -172,6 +183,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           'Author: ${book.author}',
                           style: TextStyle(
                             fontSize: 16,
+                            color: Colors.white70,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -180,6 +192,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -187,6 +200,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           book.description,
                           style: TextStyle(
                             fontSize: 16,
+                            color: Colors.white70,
                           ),
                         ),
                         SizedBox(height: 16),
@@ -195,6 +209,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                         SizedBox(height: 16),
@@ -203,6 +218,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ],

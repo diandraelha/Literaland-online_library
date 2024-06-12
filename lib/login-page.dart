@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:literaland/Controller/apiservice.dart';
+import 'package:literaland/home-page-admin.dart';
 import 'package:literaland/home-page.dart';
 import 'package:literaland/Model/user.dart';
 
@@ -22,28 +23,40 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      final ApiService apiService = ApiService();
-      final response = await apiService.login(
-        _usernameController.text,
-        _passwordController.text,
-      );
+      String username = _usernameController.text;
+      String password = _passwordController.text;
 
-      if (response['status'] == 'success') {
-        User user = response['user']; // Already a User object
-        // Login berhasil, arahkan ke halaman home
+      if (username == 'admin' && password == 'admin') {
+        // Login sebagai admin berhasil, arahkan ke HomeScreenAdmin
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login berhasil!')),
+          SnackBar(content: Text('Login sebagai Admin berhasil!')),
         );
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => Homepage(user: user), // Meneruskan objek User ke Homepage
+            builder: (context) => HomepageAdmin(), // Pastikan HomeScreenAdmin telah dibuat
           ),
         );
       } else {
-        // Login gagal, tampilkan pesan error
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'])),
-        );
+        final ApiService apiService = ApiService();
+        final response = await apiService.login(username, password);
+
+        if (response['status'] == 'success') {
+          User user = response['user']; // Already a User object
+          // Login berhasil, arahkan ke halaman home
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Login berhasil!')),
+          );
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => Homepage(user: user), // Meneruskan objek User ke Homepage
+            ),
+          );
+        } else {
+          // Login gagal, tampilkan pesan error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(response['message'])),
+          );
+        }
       }
     }
   }
@@ -126,7 +139,8 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             child: const Text(
                               'Login',
-                              style: TextStyle(color: Colors.white,
+                              style: TextStyle(
+                                color: Colors.white,
                               ),
                             ),
                           ),
@@ -139,6 +153,25 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Pastikan untuk membuat HomeScreenAdmin
+class HomeScreenAdmin extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Admin Home'),
+        backgroundColor: Color(0xFF282b2f),
+      ),
+      body: Center(
+        child: Text(
+          'Welcome Admin!',
+          style: TextStyle(fontSize: 24),
         ),
       ),
     );

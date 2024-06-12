@@ -54,7 +54,33 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Select Image Source'),
+        content: Text('Choose the source for the profile picture'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _pickImageFromSource(ImageSource.camera);
+            },
+            child: Text('Camera'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _pickImageFromSource(ImageSource.gallery);
+            },
+            child: Text('Gallery'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickImageFromSource(ImageSource source) async {
+    final XFile? image = await _picker.pickImage(source: source);
     if (image != null) {
       try {
         String downloadUrl = await _uploadImageToFirebase(image);
@@ -96,18 +122,20 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile Page', style: TextStyle(color: Colors.white)),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue, Colors.purple],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
+        title: Text(
+          'Profile Page', 
+          style: TextStyle(
+            color: Colors.white
+          )
         ),
+        backgroundColor: Color(0xFF7453FC),
+        centerTitle: true, // Menengahkan teks di AppBar
+        iconTheme: IconThemeData(
+          color: Colors.white, // Mengubah warna panah kembali menjadi putih
+        ),
+        elevation: 0,
       ),
+      backgroundColor: Color(0xFF22252A),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -133,6 +161,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text(
                         widget.user.username,
                         style: TextStyle(
+                          color: Colors.white,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
@@ -142,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         widget.user.email,
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey[600],
+                          color: Colors.white70,
                         ),
                       ),
                     ],
@@ -226,6 +255,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       elevation: 4,
+      color: Color(0xFF282b2f),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -242,30 +272,46 @@ class _ProfilePageState extends State<ProfilePage> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white
                     ),
                   ),
                   SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      Icon(Icons.calendar_today, size: 16, color: Colors.white70),
                       SizedBox(width: 4),
-                      Text('Borrowed: ${bookHistory.borrowedDate}'),
+                      Text(
+                        'Borrowed: ${bookHistory.borrowedDate}', 
+                        style: TextStyle(
+                          color: Colors.white60
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      Icon(Icons.calendar_today, size: 16, color: Colors.white70),
                       SizedBox(width: 4),
-                      Text('Due: ${bookHistory.dueDate}'),
+                      Text(
+                        'Due: ${bookHistory.dueDate}', 
+                        style: TextStyle(
+                          color: Colors.white60
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      Icon(Icons.calendar_today, size: 16, color: Colors.white70),
                       SizedBox(width: 4),
-                      Text('Returned: ${bookHistory.returnedDate ?? "Not yet returned"}'),
+                      Text(
+                        'Returned: ${bookHistory.returnedDate ?? "Not yet returned"}',
+                        style: TextStyle(
+                          color: Colors.white60
+                        ),
+                      ),
                     ],
                   ),
                   SizedBox(height: 8),
@@ -301,11 +347,15 @@ class _ProfilePageState extends State<ProfilePage> {
     Color textColor;
 
     switch (status.toLowerCase()) {
-      case 'overdue':
+      case 'rejected':
         backgroundColor = Colors.red[100]!;
         textColor = Colors.red;
         break;
-      case 'returned':
+      case 'returned_late':
+        backgroundColor = Colors.orange[100]!;
+        textColor = Colors.orange;
+        break;
+      case 'returned_on_time':
         backgroundColor = Colors.green[100]!;
         textColor = Colors.green;
         break;
