@@ -35,7 +35,7 @@ class ImageContainer extends StatelessWidget {
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(10.0),
           image: DecorationImage(
-            image: AssetImage(imagePath), // Use AssetImage for local images
+            image: NetworkImage(imagePath), // Use AssetImage for local images
             fit: BoxFit.cover,
           ),
         ),

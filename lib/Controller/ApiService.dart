@@ -96,7 +96,14 @@ class ApiService {
       Uri.parse('$baseUrl/delete_book.php'),
       body: {'id': id.toString()},
     );
-    return jsonDecode(response.body);
+
+    print('Raw response: ${response.body}'); // Add this line to log the raw response
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to delete book');
+    }
   }
 
   Future<Map<String, dynamic>> updateBook(Book book) async {

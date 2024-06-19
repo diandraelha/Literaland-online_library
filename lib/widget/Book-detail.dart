@@ -100,7 +100,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
                               image: DecorationImage(
-                                image: AssetImage(book.bookImagePath),
+                                image: NetworkImage(book.bookImagePath),
                                 fit: BoxFit.cover,
                               ),
                             ),

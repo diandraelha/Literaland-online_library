@@ -20,7 +20,6 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize the future to fetch borrowed books for the user
     _borrowedBooksFuture = _apiService.fetchBorrowedBooks(widget.user.id);
   }
 
@@ -38,15 +37,15 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Borrowed Books', 
+          'Borrowed Books',
           style: TextStyle(
             color: Colors.white,
-          )
+          ),
         ),
         backgroundColor: Color(0xFF7453FC),
-        centerTitle: true, // Menengahkan teks di AppBar
+        centerTitle: true,
         iconTheme: IconThemeData(
-          color: Colors.white, // Mengubah warna panah kembali menjadi putih
+          color: Colors.white,
         ),
         elevation: 0,
       ),
@@ -114,7 +113,25 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
               tag: 'bookImage-${borrowedBook.id}',
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset(book.bookImagePath, fit: BoxFit.cover, width: 80, height: 120),
+                child: Image.network(
+                  book.bookImagePath,
+                  fit: BoxFit.cover,
+                  width: 80,
+                  height: 120,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.error, color: Colors.red);
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                            : null,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             SizedBox(width: 20),
@@ -125,9 +142,9 @@ class _BorrowedBooksScreenState extends State<BorrowedBooksScreen> {
                   Text(
                     book.title,
                     style: TextStyle(
-                      fontSize: 18, 
+                      fontSize: 18,
                       color: Colors.white,
-                      fontWeight: FontWeight.bold
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(height: 10),

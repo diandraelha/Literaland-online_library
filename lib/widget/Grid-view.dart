@@ -34,7 +34,7 @@ class _MyGridViewState extends State<MyGridView> {
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No books available'));
+          return Center(child: Text('No books available', style: TextStyle(color: Colors.white),));
         }
 
         final books = snapshot.data!;

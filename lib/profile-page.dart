@@ -191,7 +191,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Failed to load borrowed books history'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(child: Text('No borrowed books history found'));
+                  return Center(child: Text('No borrowed books history found', style: TextStyle(color: Colors.white),));
                 } else {
                   return ListView.builder(
                     itemCount: snapshot.data!.length,
@@ -322,8 +322,8 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(width: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
-              child: Image.asset(
-                book.bookImagePath, // Assuming 'bookImagePath' is a property of the 'Book' model
+              child: Image.network(
+                book.bookImagePath,
                 height: 100,
                 width: 70,
                 fit: BoxFit.cover,
@@ -332,6 +332,17 @@ class _ProfilePageState extends State<ProfilePage> {
                     Icons.broken_image,
                     size: 70,
                     color: Colors.grey,
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              (loadingProgress.expectedTotalBytes ?? 1)
+                          : null,
+                    ),
                   );
                 },
               ),

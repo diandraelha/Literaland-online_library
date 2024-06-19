@@ -104,7 +104,29 @@ class _AdminReturnBooksScreenState extends State<AdminReturnBooksScreen> {
               tag: 'bookImage-${borrowedBook.id}',
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.asset(book.bookImagePath, fit: BoxFit.cover, width: 80, height: 120),
+                child: Image.network(
+                  book.bookImagePath,
+                  fit: BoxFit.cover,
+                  width: 80,
+                  height: 120,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.broken_image,
+                      size: 80,
+                      color: Colors.grey,
+                    );
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                            : null,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             SizedBox(width: 20),
